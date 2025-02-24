@@ -38,4 +38,3 @@ public class LAB_act2_Findthegreatestnumber {
 
 
     
-12
