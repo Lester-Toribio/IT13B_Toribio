@@ -1,3 +1,4 @@
+
 package Midterm;
 
 import java.io.File;
@@ -7,14 +8,14 @@ import java.util.Scanner;
 
 public class OrderingSystem {
 
-    static final String FILE_PATH = "C:\\Users\\Eunace Faith Emactao\\OneDrive\\Desktop\\Gwapo.txt";
+    static final String GWAPO = "C:\\Users\\Eunace Faith Emactao\\OneDrive\\Desktop\\Gwapo.txt";
     static final int KEY = 3;
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
-        boolean tae = true;
+        boolean tao = true;
 
-        while (tae) {
+        while (tao) {
             System.out.println("MANGAON TA YA");
             System.out.println("1 - LOG IN\n2 - Create Account");
             System.out.print("Enter choice: ");
@@ -23,6 +24,7 @@ public class OrderingSystem {
             in.nextLine(); 
 
             if (choice == 1) {
+              
                 login(in);
             } else if (choice == 2) {
                 createAccount(in);
@@ -44,7 +46,7 @@ public class OrderingSystem {
 
         String encryptedPassword = passwordEncryption(password, KEY);
 
-        try (FileWriter myWriter = new FileWriter(FILE_PATH, true)) {
+        try (FileWriter myWriter = new FileWriter(GWAPO, true)) {
             myWriter.write(username + "," + encryptedPassword + "\n");
             System.out.println("Account created successfully!");
         } catch (IOException e) {
@@ -64,7 +66,7 @@ public class OrderingSystem {
         boolean success = false;
 
         try {
-            File file = new File(FILE_PATH);
+            File file = new File(GWAPO);
             Scanner fileScanner = new Scanner(file);
 
             while (fileScanner.hasNextLine()) {
@@ -104,8 +106,8 @@ public class OrderingSystem {
     }
 
     public static void whiteyToribio(Scanner in) {
-        String[] menuItems = {"Burger", "Pizza", "Soda"};
-        int[] prices = {120, 200, 40};
+        String[] menuItems = {"Taco", "Quesadillas", "Soda"};
+        int[] prices = {120, 150, 40};
         int[] quantities = new int[menuItems.length];
 
         int choice;
