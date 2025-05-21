@@ -160,36 +160,37 @@ public static String Myusername;
         // TODO add your handling code here:
     }//GEN-LAST:event_passwordActionPerformed
 
-    private void createaccountActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createaccountActionPerformed
-       String user = username.getText();
+    private void createaccountActionPerformed(java.awt.event.ActionEvent evt) {
+        String user = username.getText();
         String pass = password.getText();
-         int key = 3;
+        int key = 3;
          
- this.Myusername = user;
+        if (user.isEmpty() || pass.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(null, "Invalid: Please enter both username and password.");
+        } else {
+            String filePath = "C:\\Users\\Eunace Faith Emactao\\OneDrive\\Documents\\assignments\\LOAN CALCULATOR SYSTEM\\LOAN CALCULATOR STORAGE FINAL.txt";
+            
+            String encryptedPassword = passwordEncryption(pass, key);
+            
+            // to save credentials
+            try (java.io.FileWriter writer = new java.io.FileWriter(filePath, true)) {
+                writer.write("Username: " + user + "\n");
+                writer.write("Password: " + encryptedPassword + "\n");
+                writer.write("Date Created: " + java.time.LocalDateTime.now() + "\n");
+                writer.write("----------------------------------------\n");
+                writer.close();
 
-         if (user.isEmpty() || pass.isEmpty()) {
-    javax.swing.JOptionPane.showMessageDialog(null, "Invalid: Please enter both username and password.");
-} else {
-    String filePath = "C:\\Users\\Eunace Faith Emactao\\OneDrive\\Documents\\assignments\\LOAN CALCULATOR SYSTEM\\LOAN CALCULATOR STORAGE FINAL.txt";
-    
-     String encryptedPassword = passwordEncryption(pass, key);
-     
-    // to save credentials
-    try (java.io.FileWriter writer = new java.io.FileWriter(filePath, true)) {
-        writer.write("Username: " + user + "\n");
-        writer.write("Password: " + encryptedPassword + "\n");
-        writer.write("Date Created: " + java.time.LocalDateTime.now() + "\n");
-        writer.write("----------------------------------------\n");
-        writer.close();
-
-       SKIBIDIS gwapo = new SKIBIDIS();
-        gwapo.setVisible(true);
-        dispose();
-    } catch (Exception e) {
-        javax.swing.JOptionPane.showMessageDialog(null, "Failed to save credentials.");
-    }   
-}
-    }                                             
+                // Set the username in Login class
+                Login.Myusername = user;
+                // Create SKIBIDIS instance with the username
+                SKIBIDIS gwapo = new SKIBIDIS(user);
+                gwapo.setVisible(true);
+                dispose();
+            } catch (Exception e) {
+                javax.swing.JOptionPane.showMessageDialog(null, "Failed to save credentials.");
+            }   
+        }
+    }
 
     public String passwordEncryption(String password, int key) {
     char[] chars = password.toCharArray();

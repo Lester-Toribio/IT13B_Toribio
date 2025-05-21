@@ -28,7 +28,7 @@ public class SKIBIDIS extends javax.swing.JFrame {
         initComponents();
         
       DefaultTableModel model = new DefaultTableModel(
-            new String[]{"Full Name", "Contact #", "Address", "Amount of Loan", "Years", "Months", "Interest Rate", "Monthly Payment", "Total Payment"}, 0
+            new String[]{"Full Name", "Contact #", "Address", "Amount of Loan", "Years", "Months", "Interest Rate", "Monthly Payment", "Amount Paid", "Total Payment"}, 0
         );
         TABLE.setModel(model);
         loggedInUserFile = "C:\\Users\\Eunace Faith Emactao\\OneDrive\\Documents\\assignments\\LOAN CALCULATOR SYSTEM\\LOAN CALCULATOR STORAGE FINAL.txt";
@@ -40,12 +40,12 @@ public class SKIBIDIS extends javax.swing.JFrame {
         DefaultTableModel model = (DefaultTableModel) TABLE.getModel();
         model.setRowCount(0);  // clear table
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\Eunace Faith Emactao\\OneDrive\\Documents\\assignments\\LOAN CALCULATOR SYSTEM\\LOAN CALCULATOR STORAGE FINAL.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(loggedInUserFile))) {
             String line;
             String currentUsername = "";
             boolean isCurrentUser = false;
             String fullName = "", contact = "", address = "", amountOfLoan = "", years = "", months = "", 
-                   interestRate = "", monthlyPayment = "", totalPayment = "";
+                   interestRate = "", monthlyPayment = "", amountPaid = "", totalPayment = "";
 
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
@@ -77,10 +77,17 @@ public class SKIBIDIS extends javax.swing.JFrame {
                         interestRate = line.substring(14).trim().replace("%", "");
                     } else if (line.startsWith("Monthly Payment:")) {
                         monthlyPayment = line.substring(16).trim();
+                    } else if (line.startsWith("Amount Paid:")) {
+                        amountPaid = line.substring(12).trim();
                     } else if (line.startsWith("Total Payment:")) {
                         totalPayment = line.substring(14).trim();
                     } else if (line.equals("========================================")) {
                         if (!fullName.isEmpty() && !address.isEmpty() && !amountOfLoan.isEmpty()) {
+                            // If amount paid is not found in file, initialize it to ₱0.00
+                            if (amountPaid.isEmpty()) {
+                                amountPaid = "₱0.00";
+                            }
+                            
                             model.addRow(new Object[]{
                                 fullName,
                                 contact,
@@ -90,10 +97,12 @@ public class SKIBIDIS extends javax.swing.JFrame {
                                 months.isEmpty() ? "N/A" : months,
                                 interestRate,
                                 monthlyPayment,
+                                amountPaid,
                                 totalPayment
                             });
+                            // Reset all variables for next record
                             fullName = contact = address = amountOfLoan = years = months = 
-                            interestRate = monthlyPayment = totalPayment = "";
+                            interestRate = monthlyPayment = amountPaid = totalPayment = "";
                         }
                     }
                 }
@@ -105,26 +114,53 @@ public class SKIBIDIS extends javax.swing.JFrame {
 
     private void saveUserLoan(String fullName, String contact, String address, String amountOfLoan, String years,
                                String months, String interestRate, String monthlyPayment, String totalPayment) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\Eunace Faith Emactao\\OneDrive\\Documents\\assignments\\LOAN CALCULATOR SYSTEM\\LOAN CALCULATOR STORAGE FINAL.txt", true))) {
-            writer.write("\n========================================\n");
-            writer.write("LOAN DETAILS\n");
-            writer.write("========================================\n");
-            writer.write("Full Name: " + fullName + "\n");
-            writer.write("Contact #: " + contact + "\n");
-            writer.write("Address: " + address + "\n");
-            writer.write("Amount of Loan: ₱" + amountOfLoan + "\n");
-            writer.write("Loan Duration: ");
-            if (!years.equals("N/A")) {
-                writer.write(years + " Years ");
+        try {
+            // First, read all existing content
+            StringBuilder fileContent = new StringBuilder();
+            boolean foundUsername = false;
+            
+            try (BufferedReader reader = new BufferedReader(new FileReader(loggedInUserFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    fileContent.append(line).append("\n");
+                    if (line.startsWith("Username: " + Login.Myusername)) {
+                        foundUsername = true;
+                    }
+                }
             }
-            if (!months.equals("N/A")) {
-                writer.write(months + " Months");
+
+            // If username section doesn't exist, add it
+            if (!foundUsername) {
+                fileContent.append("\n========================================\n");
+                fileContent.append("Username: ").append(Login.Myusername).append("\n");
+                fileContent.append("========================================\n");
             }
-            writer.write("\n");
-            writer.write("Interest Rate: " + interestRate + "%\n");
-            writer.write("Monthly Payment: " + monthlyPayment + "\n");
-            writer.write("Total Payment: " + totalPayment + "\n");
-            writer.write("========================================\n");
+
+            // Append new loan details
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(loggedInUserFile))) {
+                writer.write(fileContent.toString());
+                writer.write("\n========================================\n");
+                writer.write("LOAN DETAILS\n");
+                writer.write("========================================\n");
+                writer.write("Username: " + Login.Myusername + "\n");
+                writer.write("Full Name: " + fullName + "\n");
+                writer.write("Contact #: " + contact + "\n");
+                writer.write("Address: " + address + "\n");
+                writer.write("Amount of Loan: " + amountOfLoan + "\n");
+                writer.write("Loan Duration: ");
+                if (!years.equals("N/A")) {
+                    writer.write(years + " Years ");
+                }
+                if (!months.equals("N/A")) {
+                    writer.write(months + " Months");
+                }
+                writer.write("\n");
+                writer.write("Interest Rate: " + interestRate + "%\n");
+                writer.write("Monthly Payment: " + monthlyPayment + "\n");
+                writer.write("Amount Paid: ₱0.00\n");
+                writer.write("Total Payment: " + totalPayment + "\n");
+                writer.write("========================================\n");
+            }
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Error saving user loan data: " + ex.getMessage());
         }
@@ -158,6 +194,7 @@ public class SKIBIDIS extends javax.swing.JFrame {
         ADDLOAN = new javax.swing.JButton();
         DELETE = new javax.swing.JButton();
         SHOW = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
@@ -241,7 +278,7 @@ public class SKIBIDIS extends javax.swing.JFrame {
                 jButton1ActionPerformed(evt);
             }
         });
-        jPanel3.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(1260, 30, 210, 80));
+        jPanel3.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(1060, 30, 210, 80));
 
         CALCULATE.setBackground(new java.awt.Color(255, 255, 255));
         CALCULATE.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
@@ -252,7 +289,7 @@ public class SKIBIDIS extends javax.swing.JFrame {
                 CALCULATEActionPerformed(evt);
             }
         });
-        jPanel3.add(CALCULATE, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 30, 210, 80));
+        jPanel3.add(CALCULATE, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 30, 210, 80));
 
         ADDLOAN.setBackground(new java.awt.Color(255, 255, 255));
         ADDLOAN.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
@@ -263,7 +300,7 @@ public class SKIBIDIS extends javax.swing.JFrame {
                 ADDLOANActionPerformed(evt);
             }
         });
-        jPanel3.add(ADDLOAN, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 30, 210, 80));
+        jPanel3.add(ADDLOAN, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 30, 210, 80));
 
         DELETE.setBackground(new java.awt.Color(255, 255, 255));
         DELETE.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
@@ -274,7 +311,7 @@ public class SKIBIDIS extends javax.swing.JFrame {
                 DELETEActionPerformed(evt);
             }
         });
-        jPanel3.add(DELETE, new org.netbeans.lib.awtextra.AbsoluteConstraints(980, 30, 210, 80));
+        jPanel3.add(DELETE, new org.netbeans.lib.awtextra.AbsoluteConstraints(800, 30, 210, 80));
 
         SHOW.setBackground(new java.awt.Color(255, 255, 255));
         SHOW.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
@@ -285,7 +322,18 @@ public class SKIBIDIS extends javax.swing.JFrame {
                 SHOWActionPerformed(evt);
             }
         });
-        jPanel3.add(SHOW, new org.netbeans.lib.awtextra.AbsoluteConstraints(670, 30, 210, 80));
+        jPanel3.add(SHOW, new org.netbeans.lib.awtextra.AbsoluteConstraints(540, 30, 210, 80));
+
+        jButton2.setBackground(new java.awt.Color(255, 255, 255));
+        jButton2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jButton2.setForeground(new java.awt.Color(0, 0, 0));
+        jButton2.setText("PAY");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+        jPanel3.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(1300, 30, 180, 80));
 
         jPanel1.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 640, 1670, 150));
 
@@ -395,14 +443,14 @@ public class SKIBIDIS extends javax.swing.JFrame {
 
             },
             new String [] {
-                "FULL NAME", "ADDRESS", "Contact #", "AMOUNT OF LOAN", "YEARS", "MONTHS", "INTEREST RATE", "MONTHLY PAYMENT", "TOTAL PAYMENT"
+                "FULL NAME", "ADDRESS", "Contact #", "AMOUNT OF LOAN", "YEARS", "MONTHS", "INTEREST RATE", "MONTHLY PAYMENT", "AMOUNT PAID", "TOTAL PAYMENT"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class
+                java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -630,6 +678,7 @@ public class SKIBIDIS extends javax.swing.JFrame {
             months.isEmpty() ? "N/A" : months,
             interestRate,
             monthlyPayment,
+            "₱0.00",
             totalPayment
         });
 
@@ -653,80 +702,108 @@ public class SKIBIDIS extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(null, "Loan added successfully!", "LOAN", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_ADDLOANActionPerformed
 
-    private void DELETEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DELETEActionPerformed
-        try {
-            // Read all lines from the file
-            File file = new File("C:\\Users\\Eunace Faith Emactao\\OneDrive\\Documents\\assignments\\LOAN CALCULATOR SYSTEM\\LOAN CALCULATOR STORAGE FINAL.txt");
-            java.util.List<String> lines = new java.util.ArrayList<>();
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    lines.add(line);
-                }
-            }
-
-            // Create a temporary file
-            File tempFile = new File(file.getAbsolutePath() + ".tmp");
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
-                boolean isCurrentUser = false;
-                boolean skipCurrentUserLoanDetails = false;
-
-                for (int i = 0; i < lines.size(); i++) {
-                    String line = lines.get(i).trim();
-                    
-                    // Check if this is the current user's section
-                    if (line.startsWith("Username:")) {
-                        String username = line.substring(9).trim();
-                        isCurrentUser = username.equals(Login.Myusername);
-                        writer.write(lines.get(i));
-                        writer.newLine();
-                        continue;
-                    }
-
-                    // Always write username and password
-                    if (isCurrentUser && (line.startsWith("Password:") || line.startsWith("Date Created:"))) {
-                        writer.write(lines.get(i));
-                        writer.newLine();
-                        continue;
-                    }
-
-                    // Skip all loan details and separators for current user
-                    if (isCurrentUser && (line.equals("========================================") || 
-                        line.startsWith("LOAN DETAILS") || 
-                        line.startsWith("Full Name:") || 
-                        line.startsWith("Contact #:") || 
-                        line.startsWith("Address:") || 
-                        line.startsWith("Amount of Loan:") || 
-                        line.startsWith("Loan Duration:") || 
-                        line.startsWith("Interest Rate:") || 
-                        line.startsWith("Monthly Payment:") || 
-                        line.startsWith("Total Payment:"))) {
-                        continue;
-                    }
-
-                    // Write all other lines (other users' data)
-                    if (!isCurrentUser) {
-                        writer.write(lines.get(i));
-                        writer.newLine();
-                    }
-                }
-            }
-
-            // Replace the original file with the temporary file
-            if (file.exists()) {
-                file.delete();
-            }
-            tempFile.renameTo(file);
-
-            // Clear the table
-            DefaultTableModel model = (DefaultTableModel) TABLE.getModel();
-            model.setRowCount(0);
-
-            JOptionPane.showMessageDialog(null, "All loan details have been deleted.", "Deleted", JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(null, "Error updating file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    private void DELETEActionPerformed(java.awt.event.ActionEvent evt) {
+        int selectedRow = TABLE.getSelectedRow();
+        
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a row to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
         }
-    }//GEN-LAST:event_DELETEActionPerformed
+
+        // Get the data from the selected row
+        DefaultTableModel model = (DefaultTableModel) TABLE.getModel();
+        String fullNameToDelete = model.getValueAt(selectedRow, 0).toString();
+        String contactToDelete = model.getValueAt(selectedRow, 1).toString();
+        String addressToDelete = model.getValueAt(selectedRow, 2).toString();
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to delete the loan details for " + fullNameToDelete + "?",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                // Read all lines from the file
+                File file = new File(loggedInUserFile);
+                File tempFile = new File(file.getAbsolutePath() + ".tmp");
+                boolean found = false;
+
+                try (BufferedReader reader = new BufferedReader(new FileReader(file));
+                     BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+                    
+                    String line;
+                    boolean skipBlock = false;
+                    boolean isCurrentUser = false;
+                    String currentFullName = "";
+                    String currentContact = "";
+                    String currentAddress = "";
+
+                    while ((line = reader.readLine()) != null) {
+                        // Check if we're in the current user's section
+                        if (line.startsWith("Username:")) {
+                            String username = line.substring(9).trim();
+                            isCurrentUser = username.equals(Login.Myusername);
+                            writer.write(line + "\n");
+                            continue;
+                        }
+
+                        // If we're not in the current user's section, write the line and continue
+                        if (!isCurrentUser) {
+                            writer.write(line + "\n");
+                            continue;
+                        }
+
+                        // For the current user's section, check if this is the loan detail to delete
+                        if (line.startsWith("Full Name:")) {
+                            currentFullName = line.substring(10).trim();
+                            skipBlock = currentFullName.equals(fullNameToDelete);
+                            if (!skipBlock) {
+                                writer.write(line + "\n");
+                            }
+                        } else if (line.startsWith("Contact #:")) {
+                            currentContact = line.substring(10).trim();
+                            if (currentContact.equals(contactToDelete) && skipBlock) {
+                                found = true;
+                            } else if (!skipBlock) {
+                                writer.write(line + "\n");
+                            }
+                        } else if (line.startsWith("Address:")) {
+                            currentAddress = line.substring(8).trim();
+                            if (currentAddress.equals(addressToDelete) && skipBlock) {
+                                found = true;
+                            } else if (!skipBlock) {
+                                writer.write(line + "\n");
+                            }
+                        } else if (!skipBlock) {
+                            writer.write(line + "\n");
+                        }
+
+                        // Reset skipBlock when we reach the end of a loan detail block
+                        if (line.equals("========================================") && skipBlock) {
+                            skipBlock = false;
+                        }
+                    }
+                }
+
+                // Replace the original file with the temporary file
+                if (found) {
+                    if (file.exists()) {
+                        file.delete();
+                    }
+                    tempFile.renameTo(file);
+
+                    // Remove the row from the table
+                    model.removeRow(selectedRow);
+                    JOptionPane.showMessageDialog(this, "Loan details deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    tempFile.delete();
+                    JOptionPane.showMessageDialog(this, "Could not find the exact loan details in the file.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "Error updating file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
 
     private void TOTALPAYMENTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TOTALPAYMENTActionPerformed
         // TODO add your handling code here:
@@ -740,7 +817,7 @@ public class SKIBIDIS extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_AMOUNTOFLOANActionPerformed
 
-    private void SHOWActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SHOWActionPerformed
+    private void SHOWActionPerformed(java.awt.event.ActionEvent evt) {
         int selectedRow = TABLE.getSelectedRow();
 
         if (selectedRow != -1) {
@@ -754,29 +831,160 @@ public class SKIBIDIS extends javax.swing.JFrame {
             String months = model.getValueAt(selectedRow, 5).toString();
             String interestRate = model.getValueAt(selectedRow, 6).toString();
             String monthlyPayment = model.getValueAt(selectedRow, 7).toString();
-            String totalPayment = model.getValueAt(selectedRow, 8).toString();
+            String amountPaid = model.getValueAt(selectedRow, 8).toString();
+            String totalPayment = model.getValueAt(selectedRow, 9).toString();
+
+            // Calculate remaining balance
+            double totalPaymentValue = Double.parseDouble(totalPayment.replace("₱", "").replace(",", "").trim());
+            double amountPaidValue = Double.parseDouble(amountPaid.replace("₱", "").replace(",", "").trim());
+            double remainingBalance = totalPaymentValue - amountPaidValue;
 
             String message = "Summary:\n\n"
                     + "Full Name: " + fullName + "\n"
                     + "Contact #: " + contact + "\n"
                     + "Address: " + address + "\n"
-                    + "Amount of Loan: ₱" + amountOfLoan + "\n"
+                    + "Amount of Loan: " + amountOfLoan + "\n"
                     + "Loan Duration: "
                     + (years.equals("N/A") ? "" : years + " Years ")
                     + (months.equals("N/A") ? "" : months + " Month/s") + "\n"
                     + "Interest Rate: " + interestRate + "%\n"
                     + "Monthly Payment: " + monthlyPayment + "\n"
-                    + "Total Payment: " + totalPayment;
+                    + "Amount Paid: " + amountPaid + "\n"
+                    + "Total Payment: " + totalPayment + "\n"
+                    + String.format("Remaining Balance: ₱%.2f", remainingBalance);
 
             JOptionPane.showMessageDialog(this, message, "Loan Summary", JOptionPane.PLAIN_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this, "Please select a row to show the loan summary.", "No Selection", JOptionPane.WARNING_MESSAGE);
         }
-    }//GEN-LAST:event_SHOWActionPerformed
+    }
 
     private void CONTACTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CONTACTActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_CONTACTActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+        int selectedRow = TABLE.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a loan to pay.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        DefaultTableModel model = (DefaultTableModel) TABLE.getModel();
+        String fullName = model.getValueAt(selectedRow, 0).toString();
+        String totalPaymentStr = model.getValueAt(selectedRow, 9).toString();
+        String currentAmountPaidStr = model.getValueAt(selectedRow, 8).toString();
+
+        // Remove currency symbol and convert to double
+        double totalPayment = Double.parseDouble(totalPaymentStr.replace("₱", "").replace(",", "").trim());
+        double currentAmountPaid = 0;
+        
+        // Check if there's an existing amount paid
+        if (!currentAmountPaidStr.isEmpty() && !currentAmountPaidStr.equals("0.00")) {
+            try {
+                currentAmountPaid = Double.parseDouble(currentAmountPaidStr.replace("₱", "").replace(",", "").trim());
+            } catch (Exception e) {
+                // If parsing fails, amount paid remains 0
+            }
+        }
+
+        double remainingBalance = totalPayment - currentAmountPaid;
+
+        if (remainingBalance <= 0) {
+            JOptionPane.showMessageDialog(this, "This loan has been fully paid.", "Loan Status", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        String message = String.format("Current Balance: ₱%.2f\nEnter amount to pay:", remainingBalance);
+        String input = JOptionPane.showInputDialog(this, message, "Payment", JOptionPane.QUESTION_MESSAGE);
+
+        if (input != null && !input.trim().isEmpty()) {
+            try {
+                double paymentAmount = Double.parseDouble(input.trim());
+                
+                if (paymentAmount <= 0) {
+                    JOptionPane.showMessageDialog(this, "Please enter a valid payment amount greater than 0.", "Invalid Amount", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (paymentAmount > remainingBalance) {
+                    JOptionPane.showMessageDialog(this, "Payment amount cannot exceed the remaining balance.", "Invalid Amount", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Update the amount paid in the table
+                double newAmountPaid = currentAmountPaid + paymentAmount;
+                model.setValueAt(String.format("₱%.2f", newAmountPaid), selectedRow, 8);
+
+                // Update the file
+                updatePaymentInFile(fullName, newAmountPaid);
+
+                double newBalance = remainingBalance - paymentAmount;
+                JOptionPane.showMessageDialog(this, 
+                    String.format("Payment successful!\nAmount Paid: ₱%.2f\nRemaining Balance: ₱%.2f", 
+                    paymentAmount, newBalance), 
+                    "Payment Confirmation", 
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Please enter a valid number.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void updatePaymentInFile(String fullName, double newAmountPaid) {
+        try {
+            File inputFile = new File(loggedInUserFile);
+            File tempFile = new File(inputFile.getAbsolutePath() + ".tmp");
+
+            BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
+
+            String line;
+            boolean isTargetLoan = false;
+            boolean amountPaidUpdated = false;
+            StringBuilder fileContent = new StringBuilder();
+
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("Full Name: " + fullName)) {
+                    isTargetLoan = true;
+                }
+
+                if (isTargetLoan && line.startsWith("Amount Paid:")) {
+                    writer.write(String.format("Amount Paid: ₱%.2f%n", newAmountPaid));
+                    amountPaidUpdated = true;
+                } else {
+                    writer.write(line + "\n");
+                }
+
+                if (line.equals("========================================")) {
+                    if (isTargetLoan && !amountPaidUpdated) {
+                        writer.write(String.format("Amount Paid: ₱%.2f%n", newAmountPaid));
+                        writer.write("========================================\n");
+                        amountPaidUpdated = true;
+                    }
+                    isTargetLoan = false;
+                }
+            }
+
+            reader.close();
+            writer.close();
+
+            // Replace the original file with the updated one
+            if (!inputFile.delete()) {
+                throw new IOException("Could not delete original file");
+            }
+            if (!tempFile.renameTo(inputFile)) {
+                throw new IOException("Could not rename temp file");
+            }
+
+            // Reload the table data to reflect changes
+            loadUserTableData();
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error updating payment in file: " + e.getMessage(), "File Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
     /**
      * @param args the command line arguments
@@ -828,6 +1036,7 @@ public class SKIBIDIS extends javax.swing.JFrame {
     private javax.swing.JTextField TOTALPAYMENT;
     private javax.swing.JTextField YEARS;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
