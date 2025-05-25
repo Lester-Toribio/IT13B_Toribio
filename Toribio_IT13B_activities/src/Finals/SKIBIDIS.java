@@ -550,97 +550,90 @@ public class SKIBIDIS extends javax.swing.JFrame {
     private void CALCULATEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CALCULATEActionPerformed
 
         try {
-            // Get input values from your fields
-            String fullName = FULLNAME.getText().trim();
-            String address = ADDRESS.getText().trim();
+    // Get input values from your fields
+    String fullName = FULLNAME.getText().trim();
+    String address = ADDRESS.getText().trim();
 
-            // Check if required fields are empty
-            StringBuilder missingFields = new StringBuilder();
+    // Check if required fields are empty
+    StringBuilder missingFields = new StringBuilder();
 
-            if (fullName.isEmpty()) {
-                missingFields.append("Full Name\n");
-            }
-            if (address.isEmpty()) {
-                missingFields.append("Address\n");
-            }
-            if (AMOUNTOFLOAN.getText().trim().isEmpty()) {
-                missingFields.append("Loan Amount\n");
-            }
-            if (INTERESTRATE.getText().trim().isEmpty()) {
-                missingFields.append("Interest Rate\n");
-            }
+    if (fullName.isEmpty()) {
+        missingFields.append("Full Name\n");
+    }
+    if (address.isEmpty()) {
+        missingFields.append("Address\n");
+    }
+    if (AMOUNTOFLOAN.getText().trim().isEmpty()) {
+        missingFields.append("Loan Amount\n");
+    }
+    if (INTERESTRATE.getText().trim().isEmpty()) {
+        missingFields.append("Interest Rate\n");
+    }
 
-            // Check if both years and months are empty
-            String yearsText = YEARS.getText().trim();
-            String monthsText = MONTHS.getText().trim();
+    // Check if both years and months are empty
+    String yearsText = YEARS.getText().trim();
+    String monthsText = MONTHS.getText().trim();
 
-            if (yearsText.isEmpty() && monthsText.isEmpty()) {
-                missingFields.append("Either Years or Months\n");
-            }
+    if (yearsText.isEmpty() && monthsText.isEmpty()) {
+        missingFields.append("Either Years or Months\n");
+    }
 
-            // If any fields are missing, show an error message
-            if (missingFields.length() > 0) {
-                JOptionPane.showMessageDialog(this,
-                        "Please fill in the following fields:\n" + missingFields.toString(),
-                        "Input Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+    // If any fields are missing, show an error message
+    if (missingFields.length() > 0) {
+        JOptionPane.showMessageDialog(this,
+                "Please fill in the following fields:\n" + missingFields.toString(),
+                "Input Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
 
-            // Get loan amount and interest rate
-            double loanAmount = Double.parseDouble(AMOUNTOFLOAN.getText());
-            double annualInterestRate = Double.parseDouble(INTERESTRATE.getText());
+    // Get loan amount and interest rate
+    double loanAmount = Double.parseDouble(AMOUNTOFLOAN.getText());
+    double annualInterestRate = Double.parseDouble(INTERESTRATE.getText());
 
-            // Parse YEARS and MONTHS fields (only one needs to be provided)
-            int years = 0;
-            int months = 0;
+    // Parse YEARS and MONTHS fields
+    int years = 0;
+    int months = 0;
 
-            if (!yearsText.isEmpty()) {
-                years = Integer.parseInt(yearsText);
-            }
-            if (!monthsText.isEmpty()) {
-                months = Integer.parseInt(monthsText);
-            }
+    if (!yearsText.isEmpty()) {
+        years = Integer.parseInt(yearsText);
+    }
+    if (!monthsText.isEmpty()) {
+        months = Integer.parseInt(monthsText);
+    }
 
-            // Calculate total number of payments
-            int numberOfPayments = (years * 12) + months;
+    // Calculate total number of payments (months)
+    int numberOfPayments = (years * 12) + months;
 
-            if (numberOfPayments <= 0) {
-                JOptionPane.showMessageDialog(this,
-                        "Please enter a valid number of Years, Months, or both.",
-                        "Input Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+    if (numberOfPayments <= 0) {
+        JOptionPane.showMessageDialog(this,
+                "Please enter a valid number of Years, Months, or both.",
+                "Input Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
 
-            // Calculate monthly interest rate
-            double monthlyInterestRate = annualInterestRate / 12 / 100;
+    // Calculate time in years for simple interest
+    double timeInYears = numberOfPayments / 12.0;
 
-            // Calculate monthly payment
-            double monthlyPayment;
-            if (monthlyInterestRate > 0) {
-                monthlyPayment = (loanAmount * monthlyInterestRate)
-                        / (1 - Math.pow(1 + monthlyInterestRate, -numberOfPayments));
-            } else {
-                // If interest rate is 0, simple division
-                monthlyPayment = loanAmount / numberOfPayments;
-            }
+    // Calculate simple interest
+    double interest = loanAmount * (annualInterestRate / 100) * timeInYears;
 
-            // Calculate total payment
-            double totalPayment = monthlyPayment * numberOfPayments;
+    // Calculate total and monthly payment
+    double totalPayment = loanAmount + interest;
+    double monthlyPayment = totalPayment / numberOfPayments;
 
-            // Display results with Peso sign
-            MONTHLYPAYMENT.setText("₱" + String.format("%.2f", monthlyPayment));
-            TOTALPAYMENT.setText("₱" + String.format("%.2f", totalPayment));
+    // Display results with Peso sign
+    MONTHLYPAYMENT.setText("₱" + String.format("%.2f", monthlyPayment));
+    TOTALPAYMENT.setText("₱" + String.format("%.2f", totalPayment));
 
-            // Optionally, display the full name and address in console
-            System.out.println("Customer Full Name: " + fullName);
-            System.out.println("Customer Address: " + address);
+    // Optionally, print full name and address in console
+    System.out.println("Customer Full Name: " + fullName);
+    System.out.println("Customer Address: " + address);
 
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Please enter valid numbers in all fields.",
-                    "Input Error", JOptionPane.ERROR_MESSAGE);
-        }
-
+} catch (NumberFormatException ex) {
+    JOptionPane.showMessageDialog(this,
+            "Please enter valid numbers in all numeric fields.",
+            "Input Error", JOptionPane.ERROR_MESSAGE);
+}
 
     }//GEN-LAST:event_CALCULATEActionPerformed
 
